@@ -3,8 +3,8 @@ const express = require('express')
 const app = express()
 const methodOverride = require('method-override')
 const morgan = require('morgan')
-
 const mongoose = require('mongoose')
+const authController = require('./controllers/auth.controller')
 
 // DATABASE CONNECTION
 mongoose.connect(process.env.MONGODB_URI)
@@ -17,10 +17,15 @@ app.use(express.urlencoded({ extended: false}))
 app.use(methodOverride('_method'))
 app.use(morgan('dev'))
 
-// ROUTES
+
 app.get('/', (req,res) => { // make it render 
     res.render('index.ejs',{ title: 'my App'})
 })
+
+
+// ROUTES
+app.use('/auth', authController) // &&
+
 
 const port = process.env.PORT ? process.env.PORT : "3000"
 // if(process.env.PORT){
