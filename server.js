@@ -1,11 +1,13 @@
-require('dotenv').config()
+require('dotenv').config({ quiet: true })
 const express = require('express')
 const app = express()
 const methodOverride = require('method-override')
 const morgan = require('morgan')
 const mongoose = require('mongoose')
 const session = require('express-session')
+const MongoStore = require('connect-mongo')
 const authController = require('./controllers/auth.controller')
+const isSignedIn = require('./middleware/is-signed-in')
 
 // DATABASE CONNECTION
 mongoose.connect(process.env.MONGODB_URI)
@@ -21,16 +23,23 @@ app.use(session({
     secret: process.env.SESSION_SECRET,
     resave: false,
     saveUninitialized: true,
+    store: MongoStore.create({
+        mongoUrl: process.env.MONGODB_URI,
+    })
 }))
 
-
-app.get('/', (req,res) => { // make it render 
-    res.render('index.ejs',{ title: 'my App'})
+app.get('/', (req, res) => {
+    res.render('index.ejs', { title: 'my App', user: req.session.user })
 })
 
 
 // ROUTES
 app.use('/auth', authController) // &&
+
+app.use(isSignedIn)//it protects whats belows it
+app.get('/vip-lounge', (req, res) => {
+    res.send(`welcome ${req.session.user.username} 💻 `)
+})
 
 
 const port = process.env.PORT ? process.env.PORT : "3000"
